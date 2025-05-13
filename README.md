@@ -1,27 +1,27 @@
 
 # Cloud Cost Optimizer
 
-A Python-based FinOps automation tool that scans your AWS account to detect idle EC2 instances by analyzing CloudWatch CPU utilization metrics. It generates a timestamped CSV report you can use to identify cost-saving opportunities and eliminate waste in your cloud environment.
+A Python-based FinOps automation tool that scans your AWS account to detect cost inefficiencies including:
+- Idle EC2 instances (low CPU usage)
+- Unattached EBS volumes (billed but unused)
 
-Built to demonstrate FinOps knowledge and cloud automation skills for potential employers.
+The tool generates timestamped CSV reports that help FinOps practitioners identify and eliminate cloud waste.
 
 ---
 
 ## Features
 
-- Scans all EC2 instances in your AWS account
-- Detects underutilized resources (e.g., avg CPU < 5% over 24 hours)
-- Outputs clean, timestamped `.csv` reports
-- Modular code structure for easy extension (e.g. EBS, S3, tagging)
-- Ideal for rightsizing, cost analysis, and reporting in a FinOps role
+- Scans EC2 instances for low CPU usage (default: < 5% over 24 hours)
+- Detects unattached EBS volumes (status: 'available')
+- Generates CSV reports with timestamped filenames
+- Clean, modular Python structure
+- Safe read-only use of AWS APIs (does not delete or modify resources)
 
 ---
 
 ## How to Run
 
 ### 1. Install Python Requirements
-
-Ensure you're in the project folder and virtual environment, then:
 
 ```bash
 pip install -r requirements.txt
@@ -33,7 +33,7 @@ pip install -r requirements.txt
 aws configure
 ```
 
-Provide your AWS access key, secret, and a valid region like `us-east-1`.
+Provide your AWS access key, secret key, and region (e.g., `us-east-1`).
 
 ### 3. Run the Tool
 
@@ -41,22 +41,29 @@ Provide your AWS access key, secret, and a valid region like `us-east-1`.
 python3 main.py
 ```
 
-The script will generate a file in the `reports/` folder:
-
-```
-reports/idle_instances_YYYYMMDD.csv
-```
-
 ---
 
-## Sample Output
+## Output
 
-CSV file contents:
+Reports are saved to the `reports/` folder with today's date.
+
+### Example 1: Idle EC2 Instances
+
+`reports/idle_instances_YYYYMMDD.csv`:
 
 ```
 Instance ID,Avg CPU Usage (%)
 i-0123456789abcdef0,2.34
 i-0abcdef1234567890,0.97
+```
+
+### Example 2: Unattached EBS Volumes
+
+`reports/unattached_volumes_YYYYMMDD.csv`:
+
+```
+VolumeId,Size(GiB),CreateTime,AvailabilityZone,Tags
+vol-0a1b2c3d4e5f6g7h,50,2024-12-01 14:22:10,us-east-1a,"{'Name': 'backup'}"
 ```
 
 ---
@@ -66,17 +73,16 @@ i-0abcdef1234567890,0.97
 - Python 3.12
 - boto3 – AWS SDK for Python
 - pandas – for data handling
-- tabulate – optional, for future CLI reporting
+- tabulate – optional
 
 ---
 
 ## FinOps Relevance
 
-This tool reflects FinOps principles such as:
-
-- Visibility – Automated insight into unused compute
-- Optimization – Reduce cloud waste and improve unit economics
-- Operationalization – Integrate into CI/CD or schedule via GitHub Actions
+This tool helps cloud teams and FinOps practitioners:
+- Gain visibility into underused and forgotten cloud resources
+- Reduce waste and improve cost-efficiency
+- Automate daily or weekly audits with GitHub Actions
 
 ---
 
@@ -84,38 +90,30 @@ This tool reflects FinOps principles such as:
 
 ```
 cloud-cost-optimizer/
-├── main.py                # Entry point for scanning EC2 instances
-├── requirements.txt       # Python dependencies
+├── main.py                        # Entry point
+├── requirements.txt               # Python dependencies
 ├── utils/
-│   └── idle_finder.py     # CPU analysis logic
-├── reports/               # CSV output saved here
-└── README.md              # You're reading it!
+│   ├── idle_finder.py             # EC2 logic
+│   └── ebs_checker.py             # EBS logic
+├── reports/                       # CSV reports
+└── .github/workflows/             # GitHub Actions workflows
 ```
 
 ---
 
 ## GitHub Actions Template
 
-This project includes a GitHub Actions workflow for running the EC2 idle scan automatically.
+This project includes a GitHub Actions workflow for scheduled automation.
 
 - File: `.github/workflows/cost-audit-template.yml`
-- Runs: Only when manually triggered
-- Requires: AWS credentials stored in `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+- Run type: Manual only (does not run automatically)
+- Requires: GitHub repository secrets `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
 
-To use this in your own fork:
+To use it in your own fork:
 
 1. Go to Settings → Secrets → Actions
-2. Add your AWS credentials as secrets
-3. Navigate to the Actions tab and run the workflow manually
-
----
-
-## Roadmap / Next Steps
-
-- [ ] Add EBS and RDS idle checks
-- [ ] Integrate Slack or email alerts
-- [ ] Schedule daily/weekly runs with GitHub Actions
-- [ ] Create dashboard view (Streamlit or Jupyter)
+2. Add AWS credentials as secrets
+3. Go to the Actions tab and trigger the workflow manually
 
 ---
 
@@ -128,4 +126,4 @@ GitHub: [@tamirkafridjerassi](https://github.com/tamirkafridjerassi)
 
 ## License
 
-MIT — feel free to fork, adapt, and use for your own FinOps journey.
+MIT — fork, adapt, and improve.
